@@ -14,10 +14,10 @@ A Retrieval-Augmented Generation (RAG) system that enhances LLM responses with r
 
 1. Install dependencies:
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
-2. Set up environment variables:
+2. Set up environment variables: You can use any model, along with the correct key. For a list of all models and providers, refer to litellm docs.
 ```bash
 GEMINI_API_KEY=your_api_key_here
 ```
@@ -28,29 +28,26 @@ GEMINI_API_KEY=your_api_key_here
 
 ### Basic Usage
 
-```python
-from agent import agent
-
-# Ask questions about your documentation
-response = agent.run("What is the purpose of this project?")
+```
+uv run agent.py
 ```
 
 ### Command Line Interface
 
-The system provides several CLI commands for database management:
+The embedding creation and database management is done through the CLI:
 
 ```bash
-# Add/update documents
-python src/embed.py
+# Add/update documents and run the test query
+uv run src/embed.py
 
 # List all stored passages
-python src/embed.py list
+uv run src/embed.py list
 
 # Clear the database
-python src/embed.py clear
+uv run src/embed.py clear
 
-# Perform a search query
-python src/embed.py "your search query"
+# Perform a custom search query for testing
+uv run src/embed.py "your search query"
 ```
 
 ## Architecture
