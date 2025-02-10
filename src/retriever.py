@@ -8,7 +8,7 @@ class ChromaRetrieverTool(Tool):
     inputs = {
         "query": {
             "type": "string",
-            "description": "The query to perform. This should be semantically close to your target documents. Use the affirmative form rather than a question.",
+            "description": "Query to find relevant documents. Use affirmative form rather than questions.",
         }
     }
     output_type = "string"

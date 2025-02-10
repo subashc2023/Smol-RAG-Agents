@@ -9,6 +9,7 @@ from transformers import logging
 from text_chunker import chunk_markdown
 
 logging.set_verbosity_error()
+
 def initialize_model():
     return SentenceTransformer("Alibaba-NLP/gte-multilingual-base", trust_remote_code=True)
 
@@ -16,9 +17,8 @@ def load_documents():
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     docs_dir = os.path.join(project_root, "docs")
     passages = []
-    chunk_info = []  # Now each element is a tuple: (filename, chunk_index)
+    chunk_info = []
     
-    # Read all markdown files in the docs directory
     for md_file in glob.glob(os.path.join(docs_dir, "*.md")):
         basename = os.path.splitext(os.path.basename(md_file))[0]
         with open(md_file, 'r', encoding='utf-8') as f:
@@ -31,8 +31,7 @@ def load_documents():
     return passages, chunk_info
 
 def get_content_hash(passages):
-    # Create a stable hash of all content
-    content = '\n'.join(sorted(passages))  # Sort to ensure consistent order
+    content = '\n'.join(sorted(passages))
     return hashlib.md5(content.encode('utf-8')).hexdigest()
 
 def load_hash_record():
@@ -54,13 +53,11 @@ def setup_chromadb(model, passages):
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     persist_directory = os.path.join(project_root, "chroma_db")
     
-    # Unpack passages and chunk_info
     if passages:
         doc_texts, chunk_info = passages
     else:
         doc_texts, chunk_info = [], []
     
-    # Check if content has changed
     current_hash = get_content_hash(doc_texts)
     stored_hash = load_hash_record()["content_hash"]
     
@@ -68,17 +65,15 @@ def setup_chromadb(model, passages):
     collection = client.get_or_create_collection(name="document_passages")
     
     if current_hash != stored_hash:
-        # Get existing documents
         existing_data = collection.get()
         existing_docs = existing_data.get("documents", [])
         existing_ids = existing_data.get("ids", [])
         
-        # Find new passages that aren't already in the collection
         existing_docs_set = set(existing_docs)
         new_passages = [(p, info) for p, info in zip(doc_texts, chunk_info) if p not in existing_docs_set]
         
         if new_passages:
-            start_idx = len(existing_ids)  # global count so far
+            start_idx = len(existing_ids)
             new_texts = [p for p, _ in new_passages]
             new_info = [info for _, info in new_passages]
             
@@ -99,7 +94,6 @@ def setup_chromadb(model, passages):
         print("No changes in documents detected, using existing vectors.")
     
     return collection
-
 
 def perform_search(model, collection, query):
     task = 'Given a question, retrieve Wikipedia passages that answer the question'
@@ -124,8 +118,6 @@ def perform_search(model, collection, query):
         print("-" * 80)
 
 def clear_database(collection):
-    """Clear all documents from the collection and reset the hash."""
-    # Get all document IDs first
     results = collection.get()
     if results['ids']:
         collection.delete(ids=results['ids'])
@@ -135,7 +127,6 @@ def clear_database(collection):
         print("Database is already empty.")
 
 def list_passages(collection):
-    """List all passages in the database."""
     results = collection.get()
     if not results['documents']:
         print("No passages found in the database.")
@@ -145,12 +136,12 @@ def list_passages(collection):
     print("-" * 50)
     for i, (doc_id, doc) in enumerate(zip(results['ids'], results['documents'])):
         print(f"[{i+1}] ID: {doc_id}")
-        print(f"Content: {doc[:200]}...")  # Show first 200 chars
+        print(f"Content: {doc[:200]}...")
         print("-" * 50)
 
 def main():
     model = initialize_model()
-    collection = setup_chromadb(model, [])  # Initialize empty collection first
+    collection = setup_chromadb(model, [])
     
     if len(sys.argv) > 1:
         command = sys.argv[1].lower()
@@ -161,7 +152,6 @@ def main():
             list_passages(collection)
             return
     
-    # Normal search operation
     passages = load_documents()
     collection = setup_chromadb(model, passages)
     

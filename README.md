@@ -28,8 +28,8 @@ GEMINI_API_KEY=your_api_key_here
 
 ### Basic Usage
 
-```
-uv run agent.py
+```py
+uv run agent.py "Describe the caves of Xylos." # optional -web to add websearch tool to agent.
 ```
 
 ### Command Line Interface
